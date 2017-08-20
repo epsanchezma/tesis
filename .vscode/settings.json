@@ -13,6 +13,13 @@
         "__split_buffer": "cpp",
         "bitset": "cpp",
         "string": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "__locale": "cpp",
+        "memory": "cpp",
+        "iostream": "cpp",
+        "sstream": "cpp",
+        "istream": "cpp",
+        "deque": "cpp",
+        "__tuple": "cpp"
     }
 }

@@ -4,6 +4,6 @@
     "version": "0.1.0",
     "command": "g++",
     "isShellCommand": true,
-    "args": ["-g", "nodes.h", "nodes.cpp", "test.cpp"],
+    "args": ["-g", "-O3", "test.cpp"],
     "showOutput": "always"
 }
