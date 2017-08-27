@@ -21,7 +21,6 @@ bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int parent
  
     // Create a queue, enqueue source vertex and mark source vertex
     // as visited
-    // TODO: evaluate vector implementation (with pop_back and push_back)
     queue <int> q;
     q.push(source);
     visited[source] = true;
@@ -63,7 +62,6 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
     //int rGraph[V*V]; // Residual graph where rGraph[i][j] indicates 
                      // residual capacity of edge from i to j (**IT WILL ALWAYS BE 1**) (if there
                      // is an edge. If rGraph[i][j] is 0, then there is not)
-    // TODO: investigate faster way to copy one matrix to another
     std::vector<std::vector<int> > rGraph;
     rGraph = graph;
 
