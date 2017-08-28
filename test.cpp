@@ -77,6 +77,12 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
     int parent[V];  // This array is filled by BFS and to store path
  
     int max_flow = 0;  // There is no flow initially
+    int jp = 0; // counter for how many paths have been found
+    // create a matrix with only zeros
+    int flujo_actual[V][V];
+    // bool visited[V];
+    memset(flujo_actual, 0, sizeof(flujo_actual));
+    
  
     // Augment the flow while there is path from source to sink
     while (bfs(rGraph, source, sink, parent, V))
@@ -84,6 +90,52 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         // Find minimum residual capacity of the edges along the
         // path filled by BFS. Or we can say find the maximum flow
         // through the path found.
+
+        // grab the paths and do the remove of paths algorithm
+        // disminuir el max_flow y 
+        std::vector<int> pathaumentado; //current path
+
+        for (v = sink; v != source; v = parent[v])
+        {
+            if (pathaumentado.size() > 0)
+            {
+                //llenar matrix flujo_actual
+                flujo_actual[v][pathaumentado.back()] = 1;  
+            }
+            pathaumentado.push_back(v);
+        }
+        flujo_actual[source][pathaumentado.back()] = 1;  
+        pathaumentado.push_back(source);
+
+        //imprimiendo flujo actual
+        std::cout << "flujo actual:" << std::endl;
+        for (int i = 0; i < V; ++i)
+        {
+            for (int j = 0; j < V; ++j)
+            {
+                std::cout << flujo_actual[i][j] << ' ';
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+
+        // si hay mas de un path
+        if (jp>=2)
+        {
+            int ii = 0;
+            //tomar flujo_actual y columna por columna y guardar las posiciones de los 1s
+        }
+
+            // for (int ii = source; ii < V; ++ii)
+            // {
+            //     /* code */
+            // }
+        // } 
+        // else 
+        // {
+        //     // no comparar
+        // }
+        
         // TODO: investigate if having max integer is necessary since capacity is always going to be 1
         int path_flow = INT_MAX;
         std::cout << "Path: ";
@@ -106,7 +158,9 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         // Add path flow to overall flow
         max_flow += path_flow;
     }
- 
+
+    // increment how many paths have been found
+    jp++;
     // Return the overall flow
     return max_flow;
 }
