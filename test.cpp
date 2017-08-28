@@ -11,7 +11,7 @@ using namespace std;
   
 /* Returns true if there is a path from source 's' to sink 't' in
   residual graph. Also fills parent[] to store the path */
-bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int parent[], int V)
+bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int *parent, int V)
 {
     // Create a visited array and mark all vertices as not visited
     bool visited[V];
@@ -33,7 +33,7 @@ bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int parent
         int u = q.front();
         q.pop();
  
-        for (int v=0; v<V; v++)
+        for (int v = 0; v < V; v++)
         {
             if (visited[v]==false && rGraph[u][v] > 0)
             {
@@ -43,9 +43,17 @@ bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int parent
             }
         }
     }
- 
+
     // If we reached sink in BFS starting from source, then return
     // true, else false
+    //Before returning print path and save it to a collection of paths
+    // std::cout << "===Path===" << std::endl;
+    // for (int i = 0; i < V; i++)
+    //     std::cout << i << " -> " << parent[i] << std::endl;
+    // std::cout << std::endl;
+
+    std::cout << "Result: " << (visited[sink] == true) << std::endl;
+
     return (visited[sink] == true);
 }
  
@@ -78,12 +86,14 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         // through the path found.
         // TODO: investigate if having max integer is necessary since capacity is always going to be 1
         int path_flow = INT_MAX;
-        for (v=sink; v!=source; v=parent[v])
+        std::cout << "Path: ";
+        for (v = sink; v != source; v = parent[v])
         {
+            std::cout << v + 1 << " - ";
             u = parent[v];
             path_flow = min(path_flow, rGraph[u][v]);
         }
- 
+        std::cout << source + 1 << std::endl;
         // update residual capacities of the edges and reverse edges
         // along the path
         for (v=sink; v != source; v=parent[v])
@@ -180,7 +190,6 @@ int main(int argc, char *argv[])
     int maxFlows[matrix.size()];
     for (int i = 0; i < sinksLength; i++)
     {
-        // check if sink index is correct before running edmonaksdkla
         int result = edmondsKarp(matrix, 0, sinks[i]-1);
         cout << "The maximum possible flow for node " << sinks[i] << " is " << result << std::endl;
         maxFlows[i] = result;
