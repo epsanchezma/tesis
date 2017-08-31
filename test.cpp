@@ -8,6 +8,11 @@
 #include <queue>
 
 using namespace std;
+struct ekResult
+{
+    int max_flow;
+    int **flujo_completo;
+};
   
 /* Returns true if there is a path from source 's' to sink 't' in
   residual graph. Also fills parent[] to store the path */
@@ -52,13 +57,13 @@ bool bfs(std::vector<std::vector<int> > rGraph, int source, int sink, int *paren
     //     std::cout << i << " -> " << parent[i] << std::endl;
     // std::cout << std::endl;
 
-    std::cout << "Result: " << (visited[sink] == true) << std::endl;
+    //std::cout << "Result: " << (visited[sink] == true) << std::endl;
 
     return (visited[sink] == true);
 }
  
 // Returns the maximum flow from s to t in the given graph
-int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
+struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
 {
     // matrix indexes
     int u, v;
@@ -80,9 +85,7 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
     int jp = 0; // counter for how many paths have been found
     // create a matrix with only zeros
     int flujo_actual[V][V];
-    // bool visited[V];
     memset(flujo_actual, 0, sizeof(flujo_actual));
-    
  
     // Augment the flow while there is path from source to sink
     while (bfs(rGraph, source, sink, parent, V))
@@ -96,10 +99,8 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         // grab the paths and do the remove of paths algorithm
         std::vector<int> pathaumentado; //current path
 
-        for (v = sink; v != source; v = parent[v])
-        {
-            if (pathaumentado.size() > 0)
-            {
+        for (v = sink; v != source; v = parent[v]) {
+            if (pathaumentado.size() > 0) {
                 //llenar matrix flujo_actual
                 flujo_actual[v][pathaumentado.back()] = 1;  
             }
@@ -109,6 +110,7 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         pathaumentado.push_back(source);
 
         //imprimiendo flujo actual
+        /*
         std::cout << "flujo actual:" << std::endl;
         for (int i = 0; i < V; ++i)
         {
@@ -119,11 +121,9 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
             std::cout << std::endl;
         }
         std::cout << std::endl;
-
+        */
         // si hay mas de un path
-        if (jp>=2)
-        {
-            std::cout << "jp >=2" << std::endl;
+        if (jp >= 2) {
             //tomar flujo_actual y columna por columna y guardar las posiciones de los 1s
 
             // mientras que ii no sea el nodo destino, !=sink o sink-1
@@ -132,10 +132,8 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
             int ii = 0;
             for (ii = 0; ii != sink; ii++) {
                 posc.clear();
-                for (int i = source; i < V; ++i)
-                {
-                    if (flujo_actual[i][ii] == 1)
-                    {
+                for (int i = source; i < V; ++i) {
+                    if (flujo_actual[i][ii] == 1) {
                         posc.push_back(i);
                     }
                 }
@@ -148,39 +146,29 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
 
             if (swe) {
                 // cambiar rGraph quitando los nodos repetidos
-                // pathaumentado y posc
-                std::cout << "swe: " << swe << std::endl;
+                std::cout << "Found a repeated route, modifying graph and running bfs again..." << std::endl;
 
                 std::vector<int> pathaumentado2; //not current path
 
-                for (v = sink; v != source; v = parent[v])
-                {
+                for (v = sink; v != source; v = parent[v]) {
                     if (pathaumentado2.size() > 0)
-                    {
-                        //llenar matrix flujo_actual
                         flujo_actual[v][pathaumentado2.back()] = 0;
-                    }
                     pathaumentado2.push_back(v);
                 }
                 flujo_actual[source][pathaumentado2.back()] = 0;
                 pathaumentado2.push_back(source);
 
-                for (int i = 0; i < pathaumentado.size(); ++i)
-                {
+                for (int i = 0; i < pathaumentado.size(); ++i) {
                     bool sw = false;
-                    for (int j = 0; j < posc.size(); ++j)
-                    {
-                        if (posc[j] == pathaumentado[i])
-                        {
+                    for (int j = 0; j < posc.size(); ++j) {
+                        if (posc[j] == pathaumentado[i]) {
                             rGraph[posc[j]][ii] = 0;
                             sw = true;
                             break;
                         }
                     }
                     if (sw)
-                    {
                         break;
-                    }
                 }
 
                 break; // break the while(bfs)
@@ -190,8 +178,7 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         // TODO: investigate if having max integer is necessary since capacity is always going to be 1
         int path_flow = INT_MAX;
         std::cout << "Path: ";
-        for (v = sink; v != source; v = parent[v])
-        {
+        for (v = sink; v != source; v = parent[v]) {
             std::cout << v + 1 << " - ";
             u = parent[v];
             path_flow = min(path_flow, rGraph[u][v]);
@@ -199,8 +186,7 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         std::cout << source + 1 << std::endl;
         // update residual capacities of the edges and reverse edges
         // along the path
-        for (v=sink; v != source; v=parent[v])
-        {
+        for (v = sink; v != source; v = parent[v]) {
             u = parent[v];
             rGraph[u][v] -= path_flow;
             rGraph[v][u] += path_flow;
@@ -210,8 +196,18 @@ int edmondsKarp(std::vector<std::vector<int> > graph, int source, int sink)
         max_flow += path_flow;
     } // termina while de bfs
 
-    // Return the overall flow
-    return max_flow;
+    // Return the overall flow and flujo_actual
+    struct ekResult result;
+    result.max_flow = max_flow;
+
+    result.flujo_completo =  new int*[V];
+    for (int i = 0; i < V; i++) {
+        result.flujo_completo[i] = new int[V];
+        for (int j = 0; j < V; j++)
+            result.flujo_completo[i][j] = flujo_actual[i][j];
+    }
+
+    return result;
 }
 
 // load matrix from an ascii text file.
@@ -291,11 +287,30 @@ int main(int argc, char *argv[])
     // For every sink run Edmonds-Karp
     int sinksLength = sinks.size();
     int maxFlows[matrix.size()];
+    int V = matrix[0].size();
+    int finalMatrix[V][V];
+    memset(finalMatrix, 0, sizeof(finalMatrix));
+
     for (int i = 0; i < sinksLength; i++)
     {
-        int result = edmondsKarp(matrix, 0, sinks[i]-1);
-        cout << "The maximum possible flow for node " << sinks[i] << " is " << result << std::endl;
-        maxFlows[i] = result;
+        struct ekResult result = edmondsKarp(matrix, 0, sinks[i]-1);
+        cout << "The maximum possible flow for node " << sinks[i] << " is " << result.max_flow << std::endl;
+        // join flujos actuales
+        maxFlows[i] = result.max_flow;
+        for (int m = 0; m < V; m++) {
+            for (int n = 0; n < V; n++) {
+                finalMatrix[m][n] += result.flujo_completo[m][n];
+                std::cout << result.flujo_completo[m][n] << ' ';
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    std::cout << "\nFinal matrix: \n";
+    for (int m = 0; m < V; m++) {
+        for (int n = 0; n < V; n++)
+            std::cout << (finalMatrix[m][n] > 0) << ' ';
+        std::cout << std::endl;
     }
 
     return 0;
