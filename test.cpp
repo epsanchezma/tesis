@@ -287,6 +287,7 @@ int main(int argc, char *argv[])
     // For every sink run Edmonds-Karp
     int sinksLength = sinks.size();
     int maxFlows[matrix.size()];
+    memset(maxFlows, 0, sizeof(maxFlows));
     int V = matrix[0].size();
     int finalMatrix[V][V];
     memset(finalMatrix, 0, sizeof(finalMatrix));
@@ -306,12 +307,56 @@ int main(int argc, char *argv[])
         }
     }
 
+    int minFlow = maxFlows[0];
+    for (int i = 0; i < matrix.size(); i++) {
+        if (maxFlows[i] < minFlow && maxFlows[i] != 0) {
+            minFlow = maxFlows[i];
+        }
+    }
+
+    std::string filename = std::to_string(V) + "_nodes_graph_mf_" + std::to_string(minFlow) + "_ff5.ffm";
+    ofstream myfile;
+    myfile.open (filename);
+
+    for (std::vector<int>::const_iterator i = sinks.begin(); i != sinks.end(); ++i)
+        myfile << *i << ' ';
+    myfile << '\n';
+
+    std::vector<int> nodos_codificadores;
+    for (int i = 0; i < V; i++) {
+        // If we're not in a sink
+        if (!( std::find(sinks.begin(), sinks.end(), i+1) != sinks.end() )) {
+            int counter = 0;
+            // Check for more than one 1 in that column
+            for (int j = 0; j < V; j++) {
+                //std::cout << finalMatrix[j][i] << ' ';
+                if (finalMatrix[j][i] > 0)
+                    counter ++;
+
+                if (counter > 1) {
+                    nodos_codificadores.push_back(i + 1);
+                    break;
+                }
+            }
+            //std::cout << std::endl;
+        }
+    }
+
+    for (std::vector<int>::const_iterator i = nodos_codificadores.begin(); i != nodos_codificadores.end(); ++i)
+        myfile << *i << ' ';
+    myfile << '\n';
+
     std::cout << "\nFinal matrix: \n";
     for (int m = 0; m < V; m++) {
-        for (int n = 0; n < V; n++)
+        for (int n = 0; n < V; n++) {
             std::cout << (finalMatrix[m][n] > 0) << ' ';
+            myfile << (finalMatrix[m][n] > 0) << ' ';
+        }
         std::cout << std::endl;
+        myfile << '\n';
     }
+
+    myfile.close();
 
     return 0;
 }
