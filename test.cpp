@@ -6,12 +6,14 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <libgen.h>
 
 using namespace std;
 struct ekResult
 {
     int max_flow;
     int **flujo_completo;
+    std::vector<std::vector<int> > paths;
 };
   
 /* Returns true if there is a path from source 's' to sink 't' in
@@ -86,6 +88,8 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
     // create a matrix with only zeros
     int flujo_actual[V][V];
     memset(flujo_actual, 0, sizeof(flujo_actual));
+
+    struct ekResult result;
  
     // Augment the flow while there is path from source to sink
     while (bfs(rGraph, source, sink, parent, V))
@@ -177,13 +181,20 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
         
         // TODO: investigate if having max integer is necessary since capacity is always going to be 1
         int path_flow = INT_MAX;
+
         std::cout << "Path: ";
+        std::vector<int> path; // crear un vector para guardar el path
         for (v = sink; v != source; v = parent[v]) {
-            std::cout << v + 1 << " - ";
+            path.push_back(v);
+            std::cout << v << " - ";
             u = parent[v];
             path_flow = min(path_flow, rGraph[u][v]);
         }
-        std::cout << source + 1 << std::endl;
+        std::cout << source << std::endl;
+        path.push_back(source);
+
+        // save paths to an array of paths (vectors)
+        result.paths.push_back(path);
         // update residual capacities of the edges and reverse edges
         // along the path
         for (v = sink; v != source; v = parent[v]) {
@@ -197,7 +208,6 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
     } // termina while de bfs
 
     // Return the overall flow and flujo_actual
-    struct ekResult result;
     result.max_flow = max_flow;
 
     result.flujo_completo =  new int*[V];
@@ -292,19 +302,17 @@ int main(int argc, char *argv[])
     int finalMatrix[V][V];
     memset(finalMatrix, 0, sizeof(finalMatrix));
 
+    // array de resultados
+    std::vector<struct ekResult> generalResults;
+
     for (int i = 0; i < sinksLength; i++)
     {
         struct ekResult result = edmondsKarp(matrix, 0, sinks[i]-1);
-        cout << "The maximum possible flow for node " << sinks[i] << " is " << result.max_flow << std::endl;
-        // join flujos actuales
+        // cout << "The maximum possible flow for node " << sinks[i] << " is " << result.max_flow << std::endl;
+        std::cout << "original max flow: " << result.max_flow << std::endl;
+
         maxFlows[i] = result.max_flow;
-        for (int m = 0; m < V; m++) {
-            for (int n = 0; n < V; n++) {
-                finalMatrix[m][n] += result.flujo_completo[m][n];
-                std::cout << result.flujo_completo[m][n] << ' ';
-            }
-            std::cout << std::endl;
-        }
+        generalResults.push_back(result);
     }
 
     int minFlow = maxFlows[0];
@@ -314,12 +322,59 @@ int main(int argc, char *argv[])
         }
     }
 
-    std::string filename = std::to_string(V) + "_nodes_graph_mf_" + std::to_string(minFlow) + "_ff5.ffm";
+    // con el minFlow, eliminar paths en results que tengan su maxflow mayor al minFlow general
+    for (int i = 0; i < generalResults.size(); ++i)
+    {
+        while (generalResults[i].max_flow > minFlow)
+        {
+            int ajdl = 0;
+            std::vector<int> biggerPath;
+            for (int j = 0; j < generalResults[i].paths.size(); ++j)
+            {
+                if (generalResults[i].paths[j].size() > ajdl) {
+                    ajdl = generalResults[i].paths[j].size();
+                    biggerPath = generalResults[i].paths[j];
+                }
+            }
+
+            for (int k = biggerPath.size() - 1; k > 0 ; --k)
+            {
+                generalResults[i].flujo_completo[biggerPath[k]][biggerPath[k-1]] = 0;
+            }
+
+            generalResults[i].max_flow -= 1;
+        }
+    }
+
+    // join general results
+    for (int l = 0; l < generalResults.size(); ++l)
+    {
+        cout << "The maximum flow for node " << sinks[l]-1 << " is " << generalResults[l].max_flow << std::endl;
+
+        for (int m = 0; m < V; m++) {
+            for (int n = 0; n < V; n++) {
+                finalMatrix[m][n] += generalResults[l].flujo_completo[m][n];
+                std::cout << generalResults[l].flujo_completo[m][n] << ' ';
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    // create file with results
+    // std::string filename = std::to_string(V) + "_nodes_graph_mf_" + std::to_string(minFlow) + "_ff5.ffm";
+    std::string filename = basename(argv[1]);
+    
+    size_t pos = filename.rfind('.');
+    if(pos != string::npos)
+        filename.replace(pos, filename.length() - pos, ".ffm");
+    else
+        filename.append(".ffm");
+
     ofstream myfile;
     myfile.open (filename);
 
     for (std::vector<int>::const_iterator i = sinks.begin(); i != sinks.end(); ++i)
-        myfile << *i << ' ';
+        myfile << *i - 1 << ' ';
     myfile << '\n';
 
     std::vector<int> nodos_codificadores;
@@ -334,7 +389,7 @@ int main(int argc, char *argv[])
                     counter ++;
 
                 if (counter > 1) {
-                    nodos_codificadores.push_back(i + 1);
+                    nodos_codificadores.push_back(i);
                     break;
                 }
             }
