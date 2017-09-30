@@ -1,4 +1,4 @@
-// C++ program for implementation of Ford Fulkerson algorithm
+// C++ program for implementation of Ford Fulkerson algorithm!
 #include <iostream>
 #include <limits.h>
 #include <string.h>
@@ -93,7 +93,9 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
  
     // Augment the flow while there is path from source to sink
     while (bfs(rGraph, source, sink, parent, V))
-    {
+    {   
+        std::cout << "Entro al while de bfs..." << std::endl;
+        bool otrosw = false;
         // increment how many paths have been found
         jp++;
         // Find minimum residual capacity of the edges along the
@@ -151,7 +153,7 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
             if (swe) {
                 // cambiar rGraph quitando los nodos repetidos
                 std::cout << "Found a repeated route, modifying graph and running bfs again..." << std::endl;
-
+                otrosw = true;
                 std::vector<int> pathaumentado2; //not current path
 
                 for (v = sink; v != source; v = parent[v]) {
@@ -175,36 +177,39 @@ struct ekResult edmondsKarp(std::vector<std::vector<int> > graph, int source, in
                         break;
                 }
 
-                break; // break the while(bfs)
+                // break; // break the while(bfs)  
             }
         }
         
-        // TODO: investigate if having max integer is necessary since capacity is always going to be 1
-        int path_flow = INT_MAX;
+        if (!otrosw)
+        {
+            // TODO: investigate if having max integer is necessary since capacity is always going to be 1
+            int path_flow = INT_MAX;
 
-        std::cout << "Path: ";
-        std::vector<int> path; // crear un vector para guardar el path
-        for (v = sink; v != source; v = parent[v]) {
-            path.push_back(v);
-            std::cout << v << " - ";
-            u = parent[v];
-            path_flow = min(path_flow, rGraph[u][v]);
-        }
-        std::cout << source << std::endl;
-        path.push_back(source);
+            std::cout << "Path: ";
+            std::vector<int> path; // crear un vector para guardar el path
+            for (v = sink; v != source; v = parent[v]) {
+                path.push_back(v);
+                std::cout << v << " - ";
+                u = parent[v];
+                path_flow = min(path_flow, rGraph[u][v]);
+            }
+            std::cout << source << std::endl;
+            path.push_back(source);
 
-        // save paths to an array of paths (vectors)
-        result.paths.push_back(path);
-        // update residual capacities of the edges and reverse edges
-        // along the path
-        for (v = sink; v != source; v = parent[v]) {
-            u = parent[v];
-            rGraph[u][v] -= path_flow;
-            rGraph[v][u] += path_flow;
+            // save paths to an array of paths (vectors)
+            result.paths.push_back(path);
+            // update residual capacities of the edges and reverse edges
+            // along the path
+            for (v = sink; v != source; v = parent[v]) {
+                u = parent[v];
+                rGraph[u][v] -= path_flow;
+                rGraph[v][u] += path_flow;
+            }
+     
+            // Add path flow to overall flow
+            max_flow += path_flow;
         }
- 
-        // Add path flow to overall flow
-        max_flow += path_flow;
     } // termina while de bfs
 
     // Return the overall flow and flujo_actual
@@ -327,15 +332,21 @@ int main(int argc, char *argv[])
     {
         while (generalResults[i].max_flow > minFlow)
         {
+            
+            std::cout << "eliminando i: " << i << ", current max flow: " << generalResults[i].max_flow << ", should be min_flow: " << minFlow << std::endl;
             int ajdl = 0;
+            int indice = 0;
             std::vector<int> biggerPath;
             for (int j = 0; j < generalResults[i].paths.size(); ++j)
             {
                 if (generalResults[i].paths[j].size() > ajdl) {
+                    indice = j;
                     ajdl = generalResults[i].paths[j].size();
                     biggerPath = generalResults[i].paths[j];
                 }
             }
+
+            generalResults[i].paths.erase(generalResults[i].paths.begin() + indice);
 
             for (int k = biggerPath.size() - 1; k > 0 ; --k)
             {
